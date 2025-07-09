@@ -1,55 +1,98 @@
-# appwebsirizagaria-backend
+# Backend API para Siriza Agaria
 
-# Editorial Siriza Agaria — Backend
+API REST para la gestión de la editorial independiente Siriza Agaria.
 
-Este proyecto es el backend (API REST) para la gestión integral de la Editorial Siriza Agaria. Permite administrar usuarios, stock de libros, ventas, contabilidad, proyectos editoriales, marketing, cotizaciones y mucho más. Construido en Node.js con Express y MongoDB.
+## Estructura del proyecto
 
----
+```
+backend/
+├── controllers/     # Controladores para la lógica de negocio
+├── logs/           # Registros de errores y solicitudes
+├── middleware/     # Middleware para autenticación, errores, validaciones
+├── models/         # Modelos de datos
+├── routes/         # Rutas de la API
+├── utils/          # Utilidades
+├── .env            # Variables de entorno
+├── package.json    # Dependencias
+├── server.js       # Punto de entrada principal
+```
 
-## **Características principales**
+## Requisitos previos
 
-- API RESTful con endpoints seguros (JWT)
-- Control de acceso y roles de usuario (admin, editor, lector)
-- Gestión avanzada y segmentada de stock de libros
-- Integración con ventas online y consignaciones
-- Módulo de contabilidad: gastos, ingresos y reportes mensuales
-- Gestión de proyectos editoriales y sus etapas
-- Generación de cotizaciones, órdenes y PDFs
-- Registro y seguimiento de marketing (bookfluencers)
-- CRUD de libros, usuarios y transacciones
+- Node.js (v14 o superior)
+- npm (v6 o superior)
 
----
+## Instalación
 
-## **Tecnologías utilizadas**
+1. Clonar el repositorio o copiar la carpeta `backend` a tu proyecto
 
-- [Node.js](https://nodejs.org/)
-- [Express](https://expressjs.com/)
-- [MongoDB + Mongoose](https://mongoosejs.com/)
-- [JWT (jsonwebtoken)](https://www.npmjs.com/package/jsonwebtoken)
-- [bcryptjs](https://www.npmjs.com/package/bcryptjs)
-- [dotenv](https://www.npmjs.com/package/dotenv)
-- [cors](https://www.npmjs.com/package/cors)
+2. Instalar las dependencias:
 
----
+```bash
+cd backend
+npm install
+```
 
-## **Estructura del proyecto**
+3. Configurar las variables de entorno:
+   - Renombrar `.env.example` a `.env` si es necesario
+   - Ajustar las variables según tu entorno
 
-```plaintext
-editorial-backend/
-│
-├── controllers/     # Lógica de cada módulo/endpoint
-│     └── authController.js
-│
-├── middleware/      # Middlewares de autenticación y control de roles
-│
-├── models/          # Modelos de datos (Mongoose)
-│     └── User.js
-│
-├── routes/          # Rutas de la API (divididas por módulo)
-│     └── auth.js
-│
-├── .env             # Variables de entorno (NO subir a repositorios públicos)
-├── server.js        # Archivo principal para levantar el servidor
-├── package.json
-└── README.md
+## Ejecución
+
+### Modo desarrollo
+
+```bash
+npm run dev
+```
+
+### Modo producción
+
+```bash
+npm start
+```
+
+## Endpoints de la API
+
+### Autenticación
+
+- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/register` - Registrar nuevo usuario
+- `GET /api/auth/me` - Obtener usuario autenticado
+
+### Usuarios
+
+- `GET /api/users` - Obtener todos los usuarios
+- `GET /api/users/:id` - Obtener usuario por ID
+- `POST /api/users` - Crear nuevo usuario (admin)
+- `PUT /api/users/:id` - Actualizar usuario
+- `DELETE /api/users/:id` - Eliminar usuario
+
+### Libros
+
+- `GET /api/books` - Obtener todos los libros
+- `GET /api/books/stats` - Obtener estadísticas de libros
+- `GET /api/books/:id` - Obtener libro por ID
+- `POST /api/books` - Crear nuevo libro
+- `PUT /api/books/:id` - Actualizar libro
+- `DELETE /api/books/:id` - Eliminar libro
+
+### Estado del servidor
+
+- `GET /api/health` - Verificar estado del servidor
+
+## Modo de desarrollo
+
+En modo desarrollo, la API utiliza datos en memoria en lugar de una base de datos MongoDB. Esto facilita el desarrollo y las pruebas sin necesidad de configurar una base de datos.
+
+Para utilizar MongoDB:
+
+1. Descomentar la sección de conexión a MongoDB en `server.js`
+2. Configurar la variable `MONGODB_URI` en el archivo `.env`
+
+## Autenticación
+
+La API utiliza JWT (JSON Web Tokens) para la autenticación. Para acceder a rutas protegidas, incluir el token en el header:
+
+```
+x-auth-token: <tu-token-jwt>
 ```
