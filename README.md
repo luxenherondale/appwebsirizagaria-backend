@@ -91,8 +91,4 @@ Para utilizar MongoDB:
 
 ## Autenticación
 
-La API utiliza JWT (JSON Web Tokens) para la autenticación. Para acceder a rutas protegidas, incluir el token en el header:
-
-```
-x-auth-token: <tu-token-jwt>
-```
+La API utiliza JWT (JSON Web Tokens) para la autenticación.  
