@@ -10,27 +10,14 @@ services:
     env_file:
       - .env
     depends_on:
-      mongo:
-        condition: service_healthy
+      - mongo
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   mongo:
     image: mongo:6
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
 
 volumes:
   mongo_data:
