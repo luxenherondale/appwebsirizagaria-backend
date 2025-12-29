@@ -98,7 +98,7 @@ exports.createTransaction = async (req, res) => {
       buy_order,
       session_id,
       amount: parseInt(total),
-      return_url: return_url || `${req.protocol}://${req.get('host')}/api/payment/return`
+      return_url: return_url || `${process.env.API_URL || `${req.protocol}://${req.get('host')}`}/api/payment/return`
     };
 
     console.log('Creating Transbank transaction:', tbkPayload);
