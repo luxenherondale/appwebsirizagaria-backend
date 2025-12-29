@@ -302,11 +302,86 @@ const deleteBook = async (req, res) => {
   }
 };
 
+// Upload book cover image
+const uploadCover = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se proporcionó ninguna imagen' });
+    }
+
+    // Return the URL path to the uploaded file
+    const imageUrl = `/uploads/covers/${req.file.filename}`;
+    
+    res.json({
+      success: true,
+      imageUrl,
+      filename: req.file.filename
+    });
+  } catch (err) {
+    console.error('Error uploading cover:', err.message);
+    res.status(500).json({ error: 'Error al subir la imagen' });
+  }
+};
+
+// Lookup book info by ISBN using Open Library API
+const lookupISBN = async (req, res) => {
+  try {
+    const { isbn } = req.params;
+    
+    if (!isbn) {
+      return res.status(400).json({ error: 'ISBN requerido' });
+    }
+
+    // Clean ISBN (remove dashes and spaces)
+    const cleanISBN = isbn.replace(/[-\s]/g, '');
+
+    // Try Open Library API
+    const axios = require('axios');
+    const response = await axios.get(`https://openlibrary.org/api/books?bibkeys=ISBN:${cleanISBN}&format=json&jscmd=data`);
+    
+    const bookKey = `ISBN:${cleanISBN}`;
+    const bookData = response.data[bookKey];
+
+    if (!bookData) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'No se encontró información para este ISBN' 
+      });
+    }
+
+    // Extract relevant info
+    const result = {
+      success: true,
+      data: {
+        title: bookData.title || '',
+        author: bookData.authors ? bookData.authors.map(a => a.name).join(', ') : '',
+        publisher: bookData.publishers ? bookData.publishers.map(p => p.name).join(', ') : '',
+        publishDate: bookData.publish_date || '',
+        pages: bookData.number_of_pages || '',
+        cover: bookData.cover ? bookData.cover.large || bookData.cover.medium || bookData.cover.small : '',
+        subjects: bookData.subjects ? bookData.subjects.map(s => s.name).slice(0, 5) : [],
+        isbn: cleanISBN
+      }
+    };
+
+    res.json(result);
+
+  } catch (err) {
+    console.error('Error looking up ISBN:', err.message);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error al buscar información del ISBN' 
+    });
+  }
+};
+
 module.exports = {
   getBooks,
   getBookStats,
   getBookById,
   createBook,
   updateBook,
-  deleteBook
+  deleteBook,
+  uploadCover,
+  lookupISBN
 };

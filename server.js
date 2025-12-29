@@ -12,6 +12,7 @@ const usersRoutes = require('./routes/users.js');
 const booksRoutes = require('./routes/books.js'); // Usando books.js para los libros según la estructura del frontend
 const expensesRoutes = require('./routes/expenses.js'); // Nueva ruta de gastos
 const healthRoutes = require('./routes/health.js');
+const paymentRoutes = require('./routes/payment.js'); // Transbank Webpay Plus
 
 // Configuración del servidor
 const app = express();
@@ -20,6 +21,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Configuración de logs
 const accessLogStream = fs.createWriteStream(
@@ -37,6 +41,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/expenses', expensesRoutes); // Registrar las rutas de gastos
 app.use('/api/health', healthRoutes);
+app.use('/api/payment', paymentRoutes); // Transbank Webpay Plus
 
 // Middleware de manejo de errores (debe ir después de las rutas)
 app.use(errorHandler);
