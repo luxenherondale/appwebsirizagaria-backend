@@ -66,8 +66,8 @@ mongoose.connect(process.env.MONGODB_URI, {
   );
 });
 
-// En modo desarrollo, también usaremos datos en memoria como respaldo
-console.log('Ejecutando en modo desarrollo con datos en memoria como respaldo');
+// Log del modo de ejecución
+console.log(`Ejecutando en modo ${process.env.NODE_ENV || 'development'}`);
 
 // Iniciar el servidor
 app.listen(PORT, () => {

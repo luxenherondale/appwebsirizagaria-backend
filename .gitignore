@@ -7,6 +7,7 @@ node_modules/
 !.env.example
 
 # Logs
+logs/
 *.log
 npm-debug.log*
 
@@ -17,3 +18,26 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Uploads (user content)
+uploads/
+
+# Build/cache
+dist/
+build/
+.cache/
+*.tgz
+
+# Secrets/keys
+*.pem
+*.key
+*.crt
+*.p12
+
+# Coverage
+coverage/
+
+# Misc
+*.bak
+*.tmp
+*.swp
