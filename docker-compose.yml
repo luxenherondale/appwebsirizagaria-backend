@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
     environment:
       - NODE_ENV=production
     env_file:
@@ -10,29 +12,12 @@ services:
     depends_on:
       - mongo
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.sirizagaria.com`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.backend.loadbalancer.server.port=5000"
-    networks:
-      - traefik-network
-      - backend-network
 
   mongo:
     image: mongo:6
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
-    networks:
-      - backend-network
 
 volumes:
   mongo_data:
-
-networks:
-  traefik-network:
-    external: true
-  backend-network:
-    driver: bridge
