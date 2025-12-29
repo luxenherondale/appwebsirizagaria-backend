@@ -12,12 +12,20 @@ services:
     depends_on:
       - mongo
     restart: unless-stopped
+    networks:
+      - app-network
 
   mongo:
     image: mongo:6
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
+    networks:
+      - app-network
 
 volumes:
   mongo_data:
+
+networks:
+  app-network:
+    driver: bridge
