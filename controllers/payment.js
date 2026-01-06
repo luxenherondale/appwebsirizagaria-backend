@@ -1,5 +1,7 @@
 const axios = require('axios');
 const Order = require('../models/order');
+const emailService = require('../utils/emailService');
+const emailSender = require('../utils/emailSender');
 
 // Transbank Production Configuration
 const TBK_COMMERCE_CODE = process.env.TBK_COMMERCE_CODE || '597052958374';
@@ -498,7 +500,7 @@ exports.confirmTransferPayment = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { order_id } = req.params;
-    const { status, notes } = req.body;
+    const { status, notes, tracking_number } = req.body;
 
     const validStatuses = ['initiated', 'pending_payment', 'confirmed', 'cancelled', 'refunded', 'failed', 'shipped', 'delivered'];
     if (!validStatuses.includes(status)) {
@@ -536,6 +538,10 @@ exports.updateOrderStatus = async (req, res) => {
       order.cancelled_at = new Date();
     }
 
+    if (status === 'shipped' && tracking_number) {
+      order.tracking_number = tracking_number;
+    }
+
     if (notes) {
       order.transaction_data = {
         ...order.transaction_data,
@@ -551,7 +557,8 @@ exports.updateOrderStatus = async (req, res) => {
       order: {
         order_id: order.buy_order,
         status: order.status,
-        previous_status: previousStatus
+        previous_status: previousStatus,
+        tracking_number: order.tracking_number || null
       }
     });
 
@@ -560,6 +567,197 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error al actualizar estado'
+    });
+  }
+};
+
+// Send confirmation email
+exports.sendConfirmationEmail = async (req, res) => {
+  try {
+    const { order_id } = req.params;
+    const { email, template } = req.body;
+
+    const order = await Order.findOne({ buy_order: order_id });
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Orden no encontrada'
+      });
+    }
+
+    const customerEmail = email || order.customer.email;
+
+    // Check if email service is ready
+    if (!emailSender.isReady()) {
+      return res.status(503).json({
+        success: false,
+        error: 'Email service not configured. Check SMTP settings.'
+      });
+    }
+
+    // Determine which template to use based on order status or explicit template parameter
+    let templateName = template;
+    let emailResult;
+
+    if (!templateName) {
+      if (order.payment_method === 'transferencia' && order.status === 'confirmed') {
+        templateName = 'transfer-confirmation';
+        emailResult = await emailSender.sendTransferConfirmationEmail(order, customerEmail);
+      } else if (order.status === 'shipped') {
+        templateName = 'shipping-notification';
+        emailResult = await emailSender.sendShippingNotificationEmail(order, customerEmail);
+      } else {
+        templateName = 'order-confirmation';
+        emailResult = await emailSender.sendOrderConfirmationEmail(order, customerEmail);
+      }
+    } else {
+      // Use explicit template
+      let emailData;
+      let subject;
+      
+      switch (templateName) {
+        case 'transfer-confirmation':
+          emailData = emailService.prepareTransferConfirmationData(order);
+          subject = 'Transferencia Confirmada - Siriza Agaria';
+          break;
+        case 'shipping-notification':
+          emailData = emailService.prepareShippingNotificationData(order);
+          subject = 'Tu Orden ha sido Enviada - Siriza Agaria';
+          break;
+        case 'order-confirmation':
+        default:
+          emailData = emailService.prepareOrderConfirmationData(order);
+          subject = 'Confirmación de Orden - Siriza Agaria';
+          break;
+      }
+
+      emailResult = await emailSender.sendTemplateEmail(
+        customerEmail,
+        subject,
+        templateName,
+        emailData
+      );
+    }
+
+    // Check if email was sent successfully
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Error al enviar email de confirmación',
+        details: emailResult.error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Email sent successfully',
+      email_sent_to: customerEmail,
+      order_id: order.buy_order,
+      status: order.status,
+      template: templateName,
+      messageId: emailResult.messageId
+    });
+
+  } catch (error) {
+    console.error('Error sending confirmation email:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Error al enviar email de confirmación',
+      details: error.message
+    });
+  }
+};
+
+// Upload invoice
+exports.uploadInvoice = async (req, res) => {
+  try {
+    const { buyOrder } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se proporcionó ningún archivo'
+      });
+    }
+
+    // Verify file is PDF
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({
+        success: false,
+        error: 'Solo se aceptan archivos PDF'
+      });
+    }
+
+    const order = await Order.findOne({ buy_order: buyOrder });
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Orden no encontrada'
+      });
+    }
+
+    // Only allow invoice upload for non-Transbank payments
+    if (order.payment_method === 'webpay') {
+      return res.status(400).json({
+        success: false,
+        error: 'No se pueden subir facturas para pagos con Webpay'
+      });
+    }
+
+    // Store invoice path in order
+    const invoicePath = `/uploads/invoices/${buyOrder}_${req.file.filename}`;
+    order.invoice_url = invoicePath;
+    await order.save();
+
+    res.json({
+      success: true,
+      message: 'Invoice uploaded successfully',
+      invoice_url: invoicePath,
+      order_id: buyOrder
+    });
+
+  } catch (error) {
+    console.error('Error uploading invoice:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Error al subir la factura'
+    });
+  }
+};
+
+// Download invoice
+exports.downloadInvoice = async (req, res) => {
+  try {
+    const { buyOrder } = req.params;
+
+    const order = await Order.findOne({ buy_order: buyOrder });
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Orden no encontrada'
+      });
+    }
+
+    if (!order.invoice_url) {
+      return res.status(404).json({
+        success: false,
+        error: 'No hay factura disponible para esta orden'
+      });
+    }
+
+    // Return the invoice file path
+    // The frontend will handle the actual file download
+    res.json({
+      success: true,
+      invoice_url: order.invoice_url,
+      order_id: buyOrder
+    });
+
+  } catch (error) {
+    console.error('Error downloading invoice:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Error al descargar la factura'
     });
   }
 };

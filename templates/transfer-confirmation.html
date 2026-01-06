@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transferencia Confirmada - Siriza Agaria</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .order-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+        }
+        .alert {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Transferencia Confirmada!</h1>
+            <p>Tu pago ha sido procesado correctamente</p>
+        </div>
+
+        <div class="content">
+            <div class="alert">
+                <div class="alert-title">✓ Pago Confirmado</div>
+                <p>Hemos recibido y confirmado tu transferencia bancaria. Tu orden está siendo procesada.</p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Detalles de la Orden</div>
+                <div class="order-info">
+                    <div class="info-row">
+                        <span class="info-label">Orden #:</span>
+                        <span class="info-value">{{orderNumber}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Monto Total:</span>
+                        <span class="info-value">${{total}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha de Confirmación:</span>
+                        <span class="info-value">{{confirmationDate}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Estado:</span>
+                        <span class="info-value">
+                            <span class="status-badge">Confirmado</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Información de Envío</div>
+                <div class="order-info">
+                    <p><strong>{{customerName}}</strong></p>
+                    <p>{{address}}</p>
+                    <p>{{commune}}, {{region}}</p>
+                    <p>Teléfono: {{phone}}</p>
+                </div>
+            </div>
+
+            {{#notes}}
+            <div class="section">
+                <div class="section-title">Notas del Administrador</div>
+                <p>{{notes}}</p>
+            </div>
+            {{/notes}}
+
+            <div class="section">
+                <div class="section-title">¿Qué Sigue?</div>
+                <p>Tu orden será preparada y enviada en los próximos días hábiles. Recibirás un email con el número de seguimiento cuando tu paquete sea despachado.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Siriza Agaria. Todos los derechos reservados.</p>
+            <p>Si tienes preguntas, contáctanos a info@sirizagaria.com</p>
+        </div>
+    </div>
+</body>
+</html>

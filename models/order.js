@@ -66,6 +66,10 @@ const orderSchema = new mongoose.Schema({
     default: 'initiated'
   },
   
+  // Invoice information
+  invoice_url: { type: String },
+  tracking_number: { type: String },
+  
   // Timestamps
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

@@ -14,6 +14,9 @@ const expensesRoutes = require('./routes/expenses.js'); // Nueva ruta de gastos
 const healthRoutes = require('./routes/health.js');
 const paymentRoutes = require('./routes/payment.js'); // Transbank Webpay Plus
 
+// Importar email sender
+const emailSender = require('./utils/emailSender');
+
 // Configuración del servidor
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -86,6 +89,16 @@ const connectMongoDB = async () => {
 };
 
 connectMongoDB();
+
+// Initialize email service
+// You can pass a custom SMTP adapter here if you have your own implementation
+// Example: emailSender.initialize(customSmtpAdapter);
+const emailInitialized = emailSender.initialize();
+if (emailInitialized) {
+  console.log('Email service initialized');
+} else {
+  console.warn('Email service not initialized - check SMTP configuration or provide custom adapter');
+}
 
 // Log del modo de ejecución
 console.log(`Ejecutando en modo ${process.env.NODE_ENV || 'development'}`);

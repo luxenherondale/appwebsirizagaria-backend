@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Orden ha sido Enviada - Siriza Agaria</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .tracking-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .tracking-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .tracking-number {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+        .order-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+        }
+        .alert {
+            background-color: #cfe2ff;
+            border: 1px solid #b6d4fe;
+            color: #084298;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Tu Orden ha sido Enviada!</h1>
+            <p>Tu paquete está en camino</p>
+        </div>
+
+        <div class="content">
+            <div class="alert">
+                <strong>📦 Paquete Despachado</strong><br>
+                Tu orden ha sido preparada y enviada. Usa el número de seguimiento para rastrear tu paquete.
+            </div>
+
+            <div class="section">
+                <div class="section-title">Número de Seguimiento</div>
+                <div class="tracking-box">
+                    <div class="tracking-label">RASTREAR TU PAQUETE</div>
+                    <div class="tracking-number">{{trackingNumber}}</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Detalles de la Orden</div>
+                <div class="order-info">
+                    <div class="info-row">
+                        <span class="info-label">Orden #:</span>
+                        <span class="info-value">{{orderNumber}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha de Envío:</span>
+                        <span class="info-value">{{shippingDate}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Destino:</span>
+                        <span class="info-value">{{commune}}, {{region}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Información de Entrega</div>
+                <div class="order-info">
+                    <p><strong>{{customerName}}</strong></p>
+                    <p>{{address}}</p>
+                    <p>{{commune}}, {{region}}</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">¿Cómo Rastrear tu Paquete?</div>
+                <p>Puedes rastrear tu paquete usando el número de seguimiento anterior. El tiempo de entrega estimado es de 3-5 días hábiles dependiendo de tu ubicación.</p>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{trackingUrl}}" class="button">Rastrear Paquete</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Siriza Agaria. Todos los derechos reservados.</p>
+            <p>Si tienes preguntas, contáctanos a info@sirizagaria.com</p>
+        </div>
+    </div>
+</body>
+</html>
