@@ -62,7 +62,7 @@ const orderSchema = new mongoose.Schema({
   // Order status
   status: {
     type: String,
-    enum: ['initiated', 'pending_payment', 'confirmed', 'cancelled', 'refunded', 'failed'],
+    enum: ['initiated', 'pending_payment', 'confirmed', 'cancelled', 'refunded', 'failed', 'shipped', 'delivered'],
     default: 'initiated'
   },
   

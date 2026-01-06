@@ -51,20 +51,41 @@ app.get('/', (req, res) => {
   res.send('API de Siriza Agaria funcionando correctamente');
 });
 
-// Conexión a MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Conectado a MongoDB'))
-.catch(err => {
-  console.error('Error al conectar a MongoDB:', err);
-  // Registrar error en el archivo de logs
-  fs.appendFileSync(
-    path.join(__dirname, 'logs', 'errorlog'),
-    `${new Date().toISOString()} - Error de conexión a MongoDB: ${err.message}\n`
-  );
-});
+// Conexión a MongoDB con reintentos
+const connectMongoDB = async () => {
+  const maxRetries = 5;
+  let retries = 0;
+
+  while (retries < maxRetries) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 10000,
+        retryWrites: true,
+      });
+      console.log('Conectado a MongoDB');
+      return;
+    } catch (err) {
+      retries++;
+      console.error(`Error al conectar a MongoDB (intento ${retries}/${maxRetries}):`, err.message);
+      if (retries < maxRetries) {
+        console.log(`Reintentando en 5 segundos...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } else {
+        console.error('No se pudo conectar a MongoDB después de varios intentos');
+        fs.appendFileSync(
+          path.join(__dirname, 'logs', 'errorlog'),
+          `${new Date().toISOString()} - Error de conexión a MongoDB después de ${maxRetries} intentos: ${err.message}\n`
+        );
+      }
+    }
+  }
+};
+
+connectMongoDB();
 
 // Log del modo de ejecución
 console.log(`Ejecutando en modo ${process.env.NODE_ENV || 'development'}`);
