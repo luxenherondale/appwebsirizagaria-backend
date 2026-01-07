@@ -16,6 +16,13 @@ const paymentRoutes = require('./routes/payment.js'); // Transbank Webpay Plus
 const smtpConfigRoutes = require('./routes/smtpConfig.js'); // SMTP Configuration
 const emailAuditRoutes = require('./routes/emailAudit.js'); // Email Audit Trail
 const emailTemplateRoutes = require('./routes/emailTemplate.js'); // Email Templates
+const customerRoutes = require('./routes/customer.js'); // Customer Management
+const invoiceRoutes = require('./routes/invoice.js'); // Invoice Management
+const stockRoutes = require('./routes/stock.js'); // Stock/Inventory Management
+const shippingRoutes = require('./routes/shipping.js'); // Shipping/GuiaDespacho
+const purchaseOrderRoutes = require('./routes/purchaseOrder.js'); // Purchase Orders
+const contabilidadRoutes = require('./routes/contabilidad.js'); // Accounting/Contabilidad
+const dteRoutes = require('./routes/dte.js'); // DTE (Documentos Tributarios Electrónicos)
 
 // Importar email sender
 const emailSender = require('./utils/emailSender');
@@ -52,6 +59,13 @@ app.use('/api/payment', paymentRoutes); // Transbank Webpay Plus
 app.use('/api/smtp', smtpConfigRoutes); // SMTP Configuration
 app.use('/api/email-audit', emailAuditRoutes); // Email Audit Trail
 app.use('/api/email-templates', emailTemplateRoutes); // Email Templates
+app.use('/api/customers', customerRoutes); // Customer Management
+app.use('/api/invoices', invoiceRoutes); // Invoice Management
+app.use('/api/stock', stockRoutes); // Stock/Inventory Management
+app.use('/api/shipping', shippingRoutes); // Shipping/GuiaDespacho
+app.use('/api/purchase-orders', purchaseOrderRoutes); // Purchase Orders
+app.use('/api/contabilidad', contabilidadRoutes); // Accounting/Contabilidad
+app.use('/api/documents', dteRoutes); // DTE (Documentos Tributarios Electrónicos)
 
 // Middleware de manejo de errores (debe ir después de las rutas)
 app.use(errorHandler);
