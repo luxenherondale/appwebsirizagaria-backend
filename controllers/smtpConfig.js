@@ -261,3 +261,56 @@ exports.getSmtpStatus = async (req, res) => {
     });
   }
 };
+
+exports.testTemplate = async (req, res) => {
+  try {
+    const { to, subject, htmlContent } = req.body;
+
+    if (!to || !subject || !htmlContent) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: to, subject, htmlContent'
+      });
+    }
+
+    if (!emailSender.isReady()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email service is not initialized. Please configure SMTP settings.'
+      });
+    }
+
+    const result = await emailSender.sendEmail(
+      to,
+      subject,
+      htmlContent,
+      {
+        emailType: 'test',
+        templateName: 'test-template',
+        metadata: {
+          initiatedBy: req.user?.id || 'system',
+          initiatedByEmail: req.user?.email || 'system'
+        }
+      }
+    );
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Test email sent successfully',
+        messageId: result.messageId
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error || 'Failed to send test email'
+      });
+    }
+  } catch (error) {
+    console.error('Error sending test template email:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};

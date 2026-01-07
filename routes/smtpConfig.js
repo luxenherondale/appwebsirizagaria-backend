@@ -11,6 +11,8 @@ router.post('/verify', auth, smtpConfigController.verifySmtpConnection);
 
 router.post('/test', auth, smtpConfigController.testSmtpEmail);
 
+router.post('/test-template', auth, smtpConfigController.testTemplate);
+
 router.post('/reset', auth, smtpConfigController.resetSmtpConfig);
 
 router.get('/status', smtpConfigController.getSmtpStatus);
