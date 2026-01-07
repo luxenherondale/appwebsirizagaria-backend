@@ -6,7 +6,7 @@ class EmailSender {
 
   /**
    * Initialize the email service with nodemailer
-   * Reads SMTP configuration from environment variables
+   * Reads SMTP configuration from environment variables or database
    * @param {object} customAdapter - Optional custom SMTP adapter (overrides nodemailer)
    */
   initialize(customAdapter = null) {
@@ -16,16 +16,16 @@ class EmailSender {
         return this.setAdapter(customAdapter);
       }
 
-      // Use nodemailer with SMTP configuration from .env
+      // Use nodemailer with SMTP configuration from environment variables
       const nodemailer = require('nodemailer');
       
       const smtpConfig = {
-        host: process.env.SMTP_HOST,
+        host: process.env.SMTP_HOST || '',
         port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+        secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_SECURE === true,
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD
+          user: process.env.SMTP_USER || '',
+          pass: process.env.SMTP_PASSWORD || ''
         }
       };
 
@@ -40,8 +40,16 @@ class EmailSender {
         return false;
       }
 
-      // Create nodemailer transporter
-      this.transporter = nodemailer.createTransport(smtpConfig);
+      // Create nodemailer transporter with STARTTLS support
+      this.transporter = nodemailer.createTransport({
+        host: smtpConfig.host,
+        port: smtpConfig.port,
+        secure: smtpConfig.secure,
+        auth: smtpConfig.auth,
+        tls: {
+          rejectUnauthorized: false
+        }
+      });
       this.initialized = true;
 
       console.log('✅ Email service initialized with nodemailer');

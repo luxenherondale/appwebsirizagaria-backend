@@ -13,9 +13,11 @@ const booksRoutes = require('./routes/books.js'); // Usando books.js para los li
 const expensesRoutes = require('./routes/expenses.js'); // Nueva ruta de gastos
 const healthRoutes = require('./routes/health.js');
 const paymentRoutes = require('./routes/payment.js'); // Transbank Webpay Plus
+const smtpConfigRoutes = require('./routes/smtpConfig.js'); // SMTP Configuration
 
 // Importar email sender
 const emailSender = require('./utils/emailSender');
+const SmtpConfig = require('./models/smtpConfig');
 
 // Configuración del servidor
 const app = express();
@@ -45,6 +47,7 @@ app.use('/api/books', booksRoutes);
 app.use('/api/expenses', expensesRoutes); // Registrar las rutas de gastos
 app.use('/api/health', healthRoutes);
 app.use('/api/payment', paymentRoutes); // Transbank Webpay Plus
+app.use('/api/smtp', smtpConfigRoutes); // SMTP Configuration
 
 // Middleware de manejo de errores (debe ir después de las rutas)
 app.use(errorHandler);
@@ -90,15 +93,47 @@ const connectMongoDB = async () => {
 
 connectMongoDB();
 
-// Initialize email service
-// You can pass a custom SMTP adapter here if you have your own implementation
-// Example: emailSender.initialize(customSmtpAdapter);
-const emailInitialized = emailSender.initialize();
-if (emailInitialized) {
-  console.log('Email service initialized');
-} else {
-  console.warn('Email service not initialized - check SMTP configuration or provide custom adapter');
-}
+// Initialize SMTP configuration on startup
+const initializeSmtpConfig = async () => {
+  try {
+    let config = await SmtpConfig.findOne();
+    
+    if (!config) {
+      config = new SmtpConfig({
+        host: '',
+        port: 587,
+        secure: false,
+        auth: {
+          user: '',
+          pass: ''
+        },
+        from: '',
+        fromName: 'Siriza Agaria',
+        isActive: true
+      });
+      await config.save();
+      console.log('✅ Default SMTP configuration created');
+    }
+
+    process.env.SMTP_HOST = config.host;
+    process.env.SMTP_PORT = config.port;
+    process.env.SMTP_SECURE = config.secure ? 'true' : 'false';
+    process.env.SMTP_USER = config.auth.user;
+    process.env.SMTP_PASSWORD = config.auth.pass;
+    process.env.EMAIL_FROM = config.from;
+
+    const emailInitialized = emailSender.initialize();
+    if (emailInitialized) {
+      console.log('✅ Email service initialized with SMTP configuration');
+    } else {
+      console.warn('⚠️  Email service not initialized - check SMTP configuration');
+    }
+  } catch (error) {
+    console.error('❌ Error initializing SMTP configuration:', error.message);
+  }
+};
+
+setTimeout(initializeSmtpConfig, 2000);
 
 // Log del modo de ejecución
 console.log(`Ejecutando en modo ${process.env.NODE_ENV || 'development'}`);
