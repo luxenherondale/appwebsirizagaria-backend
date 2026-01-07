@@ -1,7 +1,60 @@
 class EmailSender {
   constructor() {
-    this.smtpAdapter = null;
+    this.transporter = null;
     this.initialized = false;
+  }
+
+  /**
+   * Initialize the email service with nodemailer
+   * Reads SMTP configuration from environment variables
+   * @param {object} customAdapter - Optional custom SMTP adapter (overrides nodemailer)
+   */
+  initialize(customAdapter = null) {
+    try {
+      // If custom adapter provided, use it
+      if (customAdapter) {
+        return this.setAdapter(customAdapter);
+      }
+
+      // Use nodemailer with SMTP configuration from .env
+      const nodemailer = require('nodemailer');
+      
+      const smtpConfig = {
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD
+        }
+      };
+
+      // Validate required SMTP configuration
+      if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
+        console.warn('⚠️  Email configuration incomplete. Email sending will be disabled.');
+        console.warn('Required environment variables:');
+        console.warn('  - SMTP_HOST');
+        console.warn('  - SMTP_USER');
+        console.warn('  - SMTP_PASSWORD');
+        this.initialized = false;
+        return false;
+      }
+
+      // Create nodemailer transporter
+      this.transporter = nodemailer.createTransport(smtpConfig);
+      this.initialized = true;
+
+      console.log('✅ Email service initialized with nodemailer');
+      console.log(`   SMTP Server: ${smtpConfig.host}:${smtpConfig.port}`);
+      console.log(`   Secure: ${smtpConfig.secure}`);
+      console.log(`   User: ${smtpConfig.auth.user}`);
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error initializing email service:', error.message);
+      this.initialized = false;
+      return false;
+    }
   }
 
   /**
@@ -13,76 +66,10 @@ class EmailSender {
     if (!adapter || typeof adapter.send !== 'function') {
       throw new Error('SMTP adapter must implement send(mailOptions) method');
     }
-    this.smtpAdapter = adapter;
+    this.transporter = adapter;
     this.initialized = true;
-    console.log('Custom SMTP adapter registered');
+    console.log('✅ Custom SMTP adapter registered');
     return true;
-  }
-
-  /**
-   * Initialize the email service
-   * Can use either custom adapter or default nodemailer
-   * @param {object} customAdapter - Optional custom SMTP adapter
-   */
-  initialize(customAdapter = null) {
-    try {
-      // If custom adapter provided, use it
-      if (customAdapter) {
-        return this.setAdapter(customAdapter);
-      }
-
-      // Otherwise, try to use nodemailer if available
-      try {
-        const nodemailer = require('nodemailer');
-        
-        const smtpConfig = {
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT || '587'),
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASSWORD
-          }
-        };
-
-        if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
-          console.warn('Email configuration incomplete. Email sending will be disabled.');
-          console.warn('Required: SMTP_HOST, SMTP_USER, SMTP_PASSWORD');
-          this.initialized = false;
-          return false;
-        }
-
-        const transporter = nodemailer.createTransport(smtpConfig);
-        
-        // Wrap nodemailer in adapter interface
-        this.smtpAdapter = {
-          send: async (mailOptions) => {
-            const info = await transporter.sendMail(mailOptions);
-            return {
-              success: true,
-              messageId: info.messageId,
-              response: info.response
-            };
-          },
-          verify: async () => {
-            await transporter.verify();
-            return { success: true };
-          }
-        };
-
-        this.initialized = true;
-        console.log('Email service initialized with nodemailer');
-        return true;
-      } catch (nodemailerError) {
-        console.warn('Nodemailer not available. Please provide custom SMTP adapter.');
-        this.initialized = false;
-        return false;
-      }
-    } catch (error) {
-      console.error('Error initializing email service:', error.message);
-      this.initialized = false;
-      return false;
-    }
   }
 
   /**
@@ -90,23 +77,22 @@ class EmailSender {
    * Useful for testing configuration
    */
   async verifyConnection() {
-    if (!this.smtpAdapter) {
+    if (!this.transporter) {
       return { success: false, error: 'Email service not initialized' };
     }
 
     try {
-      if (this.smtpAdapter.verify) {
-        return await this.smtpAdapter.verify();
-      }
-      return { success: true, message: 'SMTP adapter ready' };
+      await this.transporter.verify();
+      console.log('✅ SMTP connection verified');
+      return { success: true, message: 'SMTP connection verified' };
     } catch (error) {
-      console.error('SMTP verification failed:', error.message);
+      console.error('❌ SMTP verification failed:', error.message);
       return { success: false, error: error.message };
     }
   }
 
   /**
-   * Send email
+   * Send email via SMTP
    * @param {string} to - Recipient email address
    * @param {string} subject - Email subject
    * @param {string} html - HTML content
@@ -118,14 +104,14 @@ class EmailSender {
       if (!this.initialized) {
         return {
           success: false,
-          error: 'Email service not initialized. Check SMTP configuration or provide custom adapter.'
+          error: 'Email service not initialized. Check SMTP configuration in .env'
         };
       }
 
-      if (!this.smtpAdapter) {
+      if (!this.transporter) {
         return {
           success: false,
-          error: 'Email adapter not available'
+          error: 'Email transporter not available'
         };
       }
 
@@ -137,15 +123,17 @@ class EmailSender {
         ...options
       };
 
-      const result = await this.smtpAdapter.send(mailOptions);
+      const info = await this.transporter.sendMail(mailOptions);
 
-      if (result.success) {
-        console.log(`Email sent successfully to ${to}. Message ID: ${result.messageId || 'N/A'}`);
-      }
+      console.log(`✅ Email sent to ${to}. Message ID: ${info.messageId}`);
 
-      return result;
+      return {
+        success: true,
+        messageId: info.messageId,
+        response: info.response
+      };
     } catch (error) {
-      console.error('Error sending email:', error.message);
+      console.error('❌ Error sending email:', error.message);
       return {
         success: false,
         error: error.message
