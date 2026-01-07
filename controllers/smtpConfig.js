@@ -7,19 +7,10 @@ exports.getSmtpConfig = async (req, res) => {
     let config = await SmtpConfig.findOne();
     
     if (!config) {
-      config = new SmtpConfig({
-        host: '',
-        port: 587,
-        secure: false,
-        auth: {
-          user: '',
-          pass: ''
-        },
-        from: '',
-        fromName: 'Siriza Agaria',
-        isActive: true
+      return res.status(404).json({
+        success: false,
+        error: 'SMTP configuration not found. Please configure SMTP settings via environment variables and API.'
       });
-      await config.save();
     }
 
     res.json({
@@ -187,16 +178,26 @@ exports.testSmtpEmail = async (req, res) => {
 
 exports.resetSmtpConfig = async (req, res) => {
   try {
+    const requiredEnvVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'EMAIL_FROM'];
+    const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+
+    if (missingVars.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot reset configuration. Missing environment variables: ${missingVars.join(', ')}`
+      });
+    }
+
     const defaultConfig = new SmtpConfig({
-      host: '',
-      port: 587,
-      secure: false,
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
-        user: '',
-        pass: ''
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD
       },
-      from: '',
-      fromName: 'Siriza Agaria',
+      from: process.env.EMAIL_FROM,
+      fromName: process.env.EMAIL_FROM_NAME || 'Siriza Agaria',
       isActive: true
     });
 
@@ -214,7 +215,7 @@ exports.resetSmtpConfig = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'SMTP configuration reset to defaults',
+      message: 'SMTP configuration reset to environment variables',
       config: {
         host: defaultConfig.host,
         port: defaultConfig.port,

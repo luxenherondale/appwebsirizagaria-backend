@@ -98,31 +98,40 @@ connectMongoDB();
 // Initialize SMTP configuration on startup
 const initializeSmtpConfig = async () => {
   try {
+    const requiredEnvVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'EMAIL_FROM'];
+    const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+
+    if (missingVars.length > 0) {
+      console.warn('⚠️  Missing required SMTP environment variables:', missingVars.join(', '));
+      console.warn('⚠️  Email service will not be initialized until SMTP is configured');
+      return;
+    }
+
     let config = await SmtpConfig.findOne();
     
     if (!config) {
       config = new SmtpConfig({
-        host: '',
-        port: 587,
-        secure: false,
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === 'true',
         auth: {
-          user: '',
-          pass: ''
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD
         },
-        from: '',
-        fromName: 'Siriza Agaria',
+        from: process.env.EMAIL_FROM,
+        fromName: process.env.EMAIL_FROM_NAME || 'Siriza Agaria',
         isActive: true
       });
       await config.save();
-      console.log('✅ Default SMTP configuration created');
+      console.log('✅ SMTP configuration created from environment variables');
+    } else {
+      process.env.SMTP_HOST = config.host;
+      process.env.SMTP_PORT = config.port;
+      process.env.SMTP_SECURE = config.secure ? 'true' : 'false';
+      process.env.SMTP_USER = config.auth.user;
+      process.env.SMTP_PASSWORD = config.auth.pass;
+      process.env.EMAIL_FROM = config.from;
     }
-
-    process.env.SMTP_HOST = config.host;
-    process.env.SMTP_PORT = config.port;
-    process.env.SMTP_SECURE = config.secure ? 'true' : 'false';
-    process.env.SMTP_USER = config.auth.user;
-    process.env.SMTP_PASSWORD = config.auth.pass;
-    process.env.EMAIL_FROM = config.from;
 
     const emailInitialized = emailSender.initialize();
     if (emailInitialized) {

@@ -6,7 +6,7 @@ class EmailSender {
 
   /**
    * Initialize the email service with nodemailer
-   * Reads SMTP configuration from environment variables or database
+   * Reads SMTP configuration from environment variables only
    * @param {object} customAdapter - Optional custom SMTP adapter (overrides nodemailer)
    */
   initialize(customAdapter = null) {
@@ -16,29 +16,29 @@ class EmailSender {
         return this.setAdapter(customAdapter);
       }
 
+      // Validate required environment variables
+      const requiredVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD'];
+      const missingVars = requiredVars.filter(v => !process.env[v]);
+
+      if (missingVars.length > 0) {
+        console.warn('⚠️  Email configuration incomplete. Email sending will be disabled.');
+        console.warn('Missing required environment variables:', missingVars.join(', '));
+        this.initialized = false;
+        return false;
+      }
+
       // Use nodemailer with SMTP configuration from environment variables
       const nodemailer = require('nodemailer');
       
       const smtpConfig = {
-        host: process.env.SMTP_HOST || '',
-        port: parseInt(process.env.SMTP_PORT || '587'),
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
         secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_SECURE === true,
         auth: {
-          user: process.env.SMTP_USER || '',
-          pass: process.env.SMTP_PASSWORD || ''
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD
         }
       };
-
-      // Validate required SMTP configuration
-      if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
-        console.warn('⚠️  Email configuration incomplete. Email sending will be disabled.');
-        console.warn('Required environment variables:');
-        console.warn('  - SMTP_HOST');
-        console.warn('  - SMTP_USER');
-        console.warn('  - SMTP_PASSWORD');
-        this.initialized = false;
-        return false;
-      }
 
       // Create nodemailer transporter with STARTTLS support
       this.transporter = nodemailer.createTransport({

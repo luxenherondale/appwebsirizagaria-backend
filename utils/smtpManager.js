@@ -5,6 +5,17 @@ class SmtpManager {
     this.currentConfig = null;
   }
 
+  validateEnvironmentVariables() {
+    const requiredVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'EMAIL_FROM'];
+    const missing = requiredVars.filter(v => !process.env[v]);
+    
+    if (missing.length > 0) {
+      console.warn('⚠️  Missing required SMTP environment variables:', missing.join(', '));
+      return false;
+    }
+    return true;
+  }
+
   async loadConfigFromDatabase() {
     try {
       const SmtpConfig = require('../models/smtpConfig');

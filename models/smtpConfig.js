@@ -3,13 +3,11 @@ const mongoose = require('mongoose');
 const smtpConfigSchema = new mongoose.Schema({
   host: {
     type: String,
-    required: true,
-    default: ''
+    required: true
   },
   port: {
     type: Number,
-    required: true,
-    default: 587
+    required: true
   },
   secure: {
     type: Boolean,
@@ -18,19 +16,16 @@ const smtpConfigSchema = new mongoose.Schema({
   auth: {
     user: {
       type: String,
-      required: true,
-      default: ''
+      required: true
     },
     pass: {
       type: String,
-      required: true,
-      default: ''
+      required: true
     }
   },
   from: {
     type: String,
-    required: true,
-    default: ''
+    required: true
   },
   fromName: {
     type: String,
