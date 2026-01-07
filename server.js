@@ -15,6 +15,7 @@ const healthRoutes = require('./routes/health.js');
 const paymentRoutes = require('./routes/payment.js'); // Transbank Webpay Plus
 const smtpConfigRoutes = require('./routes/smtpConfig.js'); // SMTP Configuration
 const emailAuditRoutes = require('./routes/emailAudit.js'); // Email Audit Trail
+const emailTemplateRoutes = require('./routes/emailTemplate.js'); // Email Templates
 
 // Importar email sender
 const emailSender = require('./utils/emailSender');
@@ -50,6 +51,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/payment', paymentRoutes); // Transbank Webpay Plus
 app.use('/api/smtp', smtpConfigRoutes); // SMTP Configuration
 app.use('/api/email-audit', emailAuditRoutes); // Email Audit Trail
+app.use('/api/email-templates', emailTemplateRoutes); // Email Templates
 
 // Middleware de manejo de errores (debe ir después de las rutas)
 app.use(errorHandler);
