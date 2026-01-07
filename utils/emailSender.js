@@ -135,6 +135,26 @@ class EmailSender {
 
       console.log(`✅ Email sent to ${to}. Message ID: ${info.messageId}`);
 
+      // Log email to audit trail
+      try {
+        const emailAuditLogger = require('./emailAuditLogger');
+        await emailAuditLogger.logEmailSent(to, subject, info.messageId, info.response, {
+          cc: options.cc,
+          bcc: options.bcc,
+          from: mailOptions.from,
+          templateName: options.templateName,
+          relatedOrderId: options.relatedOrderId,
+          relatedUserId: options.relatedUserId,
+          emailType: options.emailType,
+          htmlContent: html,
+          textContent: options.text,
+          templateData: options.templateData,
+          metadata: options.metadata
+        });
+      } catch (auditError) {
+        console.warn('⚠️ Failed to log email to audit trail:', auditError.message);
+      }
+
       return {
         success: true,
         messageId: info.messageId,
@@ -142,6 +162,22 @@ class EmailSender {
       };
     } catch (error) {
       console.error('❌ Error sending email:', error.message);
+
+      // Log failed email to audit trail
+      try {
+        const emailAuditLogger = require('./emailAuditLogger');
+        await emailAuditLogger.logEmailFailed(to, subject, error, {
+          from: process.env.EMAIL_FROM || 'noreply@sirizagaria.com',
+          templateName: options.templateName,
+          relatedOrderId: options.relatedOrderId,
+          relatedUserId: options.relatedUserId,
+          emailType: options.emailType,
+          metadata: options.metadata
+        });
+      } catch (auditError) {
+        console.warn('⚠️ Failed to log failed email to audit trail:', auditError.message);
+      }
+
       return {
         success: false,
         error: error.message
